@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>mission 6-02</title>
+<style>
+    body { font-family: sans-serif; padding: 20px; }
+    table { width: 70%; border-collapse: collapse; margin:20px 10pt; }
+    th, td { padding: 8px; text-align: center; border: 1px solid #333; }
+    th { background-color: #f0f0f0; }
+    input { width: 100%; padding: 4px; border: 1px solid #ccc; }
+    button { padding: 5px 10px; cursor: pointer; }
+    #management { margin-bottom: 20px; white-space: pre-line; font-family: monospace; }
+</style>
+</head>
+<body>
+    <div id="management"></div>
+    <table id="Table1" border="1">
+     <tr>
+        <th>日付</th>
+        <th>項目</th>
+        <th>金額</th>
+        <th>貯金残高</th>
+        <th>操作</th>
+     </tr>
+    </table>     
+    <button onclick="managementrow()">行追加</button>
+    
+    <script>
+        var object = document.getElementById('management');
+        var goal = 1000000;
+        var currentsavings = 200000;
+        var difference = goal - currentsavings;
+
+        var text1 = `目標：貯金を${goal}円にする
+現在の貯金：${currentsavings}円
+差額：${difference}円
+
+収支一覧`;
+        object.innerText = text1;
+
+        function managementrow() {
+            var table = document.getElementById('Table1');
+            var newrow = table.insertRow();
+            newrow.innerHTML = `
+                <td><input type="number" placeholder="日付" onchange="autoSave()"></td>
+                <td><input type="text" placeholder="項目" onchange="autoSave()"></td>
+                <td><input type="number" placeholder="金額" onchange="autoSave()"></td>
+                <td><input type="number" placeholder="貯金残高" onchange="autoSave()"></td>
+                <td><button onclick="deleteRow(this)">削除</button></td>
+            `;
+        }
+
+        function deleteRow(btn) {
+            btn.parentNode.parentNode.remove();
+            autoSave(); // 行削除後も自動保存
+        }
+
+        // 自動保存機能
+        function autoSave() {
+            var table = document.getElementById('Table1');
+            var rows = table.rows;
+            var tableData = [];
+            
+            // ヘッダー行を除いてデータ行を処理
+            for (var i = 1; i < rows.length; i++) {
+                var inputs = rows[i].querySelectorAll('input');
+                var rowData = {
+                    date: inputs[0].value,
+                    item: inputs[1].value,
+                    amount: inputs[2].value,
+                    balance: inputs[3].value
+                };
+                tableData.push(rowData);
+            }
+            
+            // JSON形式でCookieに保存
+            var dataString = JSON.stringify(tableData);
+            document.cookie = "savingsData=" + encodeURIComponent(dataString) + "; expires=" + getExpiryDate() + "; path=/";
+        }
+
+        // データを自動読み込みする関数
+        function loadData() {
+            var savedData = getCookie("savingsData");
+            if (savedData) {
+                try {
+                    var tableData = JSON.parse(decodeURIComponent(savedData));
+                    
+                    // 既存のデータ行を削除（ヘッダー行は残す）
+                    var table = document.getElementById('Table1');
+                    while (table.rows.length > 1) {
+                        table.deleteRow(1);
+                    }
+                    
+                    // 保存されたデータを復元
+                    tableData.forEach(function(rowData) {
+                        var newrow = table.insertRow();
+                        newrow.innerHTML = `
+                            <td><input type="number" placeholder="日付" value="${rowData.date}" onchange="autoSave()"></td>
+                            <td><input type="text" placeholder="項目" value="${rowData.item}" onchange="autoSave()"></td>
+                            <td><input type="number" placeholder="金額" value="${rowData.amount}" onchange="autoSave()"></td>
+                            <td><input type="number" placeholder="貯金残高" value="${rowData.balance}" onchange="autoSave()"></td>
+                            <td><button onclick="deleteRow(this)">削除</button></td>
+                        `;
+                    });
+                } catch (e) {
+                    console.log('データの読み込みに失敗しました。');
+                }
+            }
+        }
+
+        // Cookieから値を取得する関数
+        function getCookie(name) {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.indexOf(name + '=') === 0) {
+                    return cookie.substring(name.length + 1);
+                }
+            }
+            return null;
+        }
+
+        // Cookie有効期限を設定する関数（30日後）
+        function getExpiryDate() {
+            var date = new Date();
+            date.setTime(date.getTime() + (30 * 24 * 60 * 60 * 1000)); // 30日
+            return date.toUTCString();
+        }
+
+        // ページ読み込み時に自動でデータを復元
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
+        });
+    </script>
+</body>
+</html>
