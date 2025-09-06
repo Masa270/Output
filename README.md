@@ -8,7 +8,7 @@
   ・なるべく自分が最初にhousehold accounts_requirements.pdfで構想した通りにコードを書くようにした。  
   ・生成AIを使いながらコードを作成したが、最終的にコードを理解できるようにした。
 ## 3.URL
-　http://127.0.0.1:5500/household%20accounts/household%20accounts.html
+  https://masa270.github.io/Output/
 
 ## 4.使用環境
 　Windowsで動作可能。他OSは不明。
